@@ -1,15 +1,21 @@
 package com.helloscala.akka.security.oauth.server.crypto.keys
 
 import java.math.BigInteger
-import java.security.interfaces.{ ECPublicKey, RSAPublicKey }
-import java.security.spec.{ ECFieldFp, ECParameterSpec, ECPoint, EllipticCurve }
-import java.security.{ KeyPair, KeyPairGenerator }
+import java.security.interfaces.ECPublicKey
+import java.security.interfaces.RSAPublicKey
+import java.security.spec.ECFieldFp
+import java.security.spec.ECParameterSpec
+import java.security.spec.ECPoint
+import java.security.spec.EllipticCurve
+import java.security.KeyPair
+import java.security.KeyPairGenerator
 import java.time.Instant
 import java.util.UUID
 
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk._
-import javax.crypto.{ KeyGenerator, SecretKey }
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
 
 /**
  * @author Yang Jing <a href="mailto:yang.xunjing@qq.com">yangbajing</a>
@@ -17,18 +23,25 @@ import javax.crypto.{ KeyGenerator, SecretKey }
  */
 object KeyUtils {
   def convert(managedKey: ManagedKey): Option[JWK] = {
-    Option(managedKey.publicKey match {
+    managedKey.publicKey.flatMap {
       case publicKey: RSAPublicKey =>
-        new RSAKey.Builder(publicKey).keyUse(KeyUse.SIGNATURE).algorithm(JWSAlgorithm.RS256).keyID(managedKey.id).build
+        val rsaKey = new RSAKey.Builder(publicKey)
+          .keyUse(KeyUse.SIGNATURE)
+          .algorithm(JWSAlgorithm.RS256)
+          .keyID(managedKey.id)
+          .build
+        Some(rsaKey)
       case publicKey: ECPublicKey =>
         val curve = Curve.forECParameterSpec(publicKey.getParams)
-        new ECKey.Builder(curve, publicKey)
+        val ecKey = new ECKey.Builder(curve, publicKey)
           .keyUse(KeyUse.SIGNATURE)
           .algorithm(JWSAlgorithm.ES256)
           .keyID(managedKey.id)
           .build
-      case _ => null
-    })
+        Some(ecKey)
+      case _ =>
+        None
+    }
   }
 
   def generateSecretKey(): SecretKey = {
@@ -76,7 +89,7 @@ object KeyUtils {
   def generateKeys(): Map[String, ManagedKey] = {
     val rsaKeyPair = generateRsaKey()
     val rsaManagedKey =
-      ManagedKey(UUID.randomUUID().toString, rsaKeyPair.getPrivate, Some(rsaKeyPair.getPublic), Instant.now(), None)
+      ManagedKey("rsa-key", rsaKeyPair.getPrivate, Some(rsaKeyPair.getPublic), Instant.now(), None)
     val hmacKey: SecretKey = generateSecretKey()
     val secretManagedKey: ManagedKey = ManagedKey(UUID.randomUUID().toString, hmacKey, None, Instant.now(), None)
     Map(rsaManagedKey.id -> rsaManagedKey, secretManagedKey.id -> secretManagedKey)

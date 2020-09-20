@@ -9,15 +9,19 @@ import akka.http.scaladsl.model.headers.BasicHttpCredentials
 import akka.util.Timeout
 import com.helloscala.akka.oauth.constant.OAuth2ParameterNames
 import com.helloscala.akka.oauth.jwt.JWT
-import com.helloscala.akka.oauth.{ OAuth2AccessToken, TokenType }
-import com.helloscala.akka.security.authentication.{ Authentication, AuthenticationProvider }
+import com.helloscala.akka.oauth.OAuth2AccessToken
+import com.helloscala.akka.oauth.TokenType
+import com.helloscala.akka.security.authentication.Authentication
+import com.helloscala.akka.security.authentication.AuthenticationProvider
 import com.helloscala.akka.security.exception.AkkaSecurityException
 import com.helloscala.akka.security.oauth.jose.JoseHeader
-import com.helloscala.akka.security.oauth.server.authentication.client.{ RegisteredClient, RegisteredClientRepository }
-import com.helloscala.akka.security.oauth.server.crypto.keys.{ KeyManager, ManagedKey }
+import com.helloscala.akka.security.oauth.server.authentication.client.RegisteredClient
+import com.helloscala.akka.security.oauth.server.authentication.client.RegisteredClientRepository
 import com.helloscala.akka.security.oauth.server.jwt.JwtEncoder
-import com.helloscala.akka.security.oauth.server.{ OAuth2AuthorizationService, OAuth2Extension }
-import com.nimbusds.jose.{ JWSAlgorithm, JWSHeader }
+import com.helloscala.akka.security.oauth.server.OAuth2AuthorizationService
+import com.helloscala.akka.security.oauth.server.OAuth2Extension
+import com.nimbusds.jose.JWSAlgorithm
+import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.JWTClaimsSet
 
 import scala.concurrent.Future
@@ -34,9 +38,9 @@ class OAuth2ClientCredentialsAuthenticationProviderImpl(system: ActorSystem[_])
   implicit private val ts = system
   implicit private val ec = system.executionContext
   implicit private val timeout: Timeout = 5.seconds
-  private val oauth2Extension = OAuth2Extension(system)
 
   override def authenticate(authentication: Authentication): Future[OAuth2AccessTokenAuthenticationToken] = {
+    val oauth2Extension = OAuth2Extension(system)
     val oauthAuthentication = authentication.asInstanceOf[OAuth2AccessTokenAuthentication]
 
     val registeredClientFuture: Future[RegisteredClient] = oauthAuthentication.credentials match {

@@ -1,7 +1,9 @@
 package com.helloscala.akka.oauth
 
-import com.fasterxml.jackson.databind.annotation.{ JsonDeserialize, JsonSerialize }
-import com.helloscala.akka.oauth.jacksons.{ TokenTypeDeserializer, TokenTypeSerializer }
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.helloscala.akka.oauth.jacksons.TokenTypeDeserializer
+import com.helloscala.akka.oauth.jacksons.TokenTypeSerializer
 
 /**
  * @author Yang Jing <a href="mailto:yang.xunjing@qq.com">yangbajing</a>

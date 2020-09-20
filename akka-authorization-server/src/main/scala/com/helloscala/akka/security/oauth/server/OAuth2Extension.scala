@@ -1,12 +1,14 @@
 package com.helloscala.akka.security.oauth.server
 
-import akka.actor.typed.{ ActorRef, ActorSystem, Extension, ExtensionId }
+import akka.actor.typed.ActorRef
+import akka.actor.typed.ActorSystem
+import akka.actor.typed.Extension
+import akka.actor.typed.ExtensionId
 import akka.util.Timeout
 import com.helloscala.akka.security.authentication.AuthenticationProvider
 import com.helloscala.akka.security.oauth.server.authentication.client.RegisteredClientRepository
 import com.helloscala.akka.security.oauth.server.crypto.keys.KeyManager
 import com.helloscala.akka.security.oauth.server.jwt.JwtEncoder
-import com.helloscala.akka.security.util.AkkaUtils
 import com.typesafe.config.Config
 
 import scala.concurrent.duration._
@@ -20,18 +22,23 @@ class OAuth2Extension()(implicit val system: ActorSystem[_]) extends Extension {
   private implicit val timeout: Timeout = 5.seconds
   val config: Config = system.settings.config.getConfig("akka.security.server")
 
-  val registeredClientRepository: ActorRef[RegisteredClientRepository.Command] =
-    AkkaUtils.receptionistFindOne(RegisteredClientRepository.Key)
+  def registeredClientRepository: ActorRef[RegisteredClientRepository.Command] =
+    serverConfigure.registeredClientRepository
 
-  val jwtEncoder: ActorRef[JwtEncoder.Command] = AkkaUtils.receptionistFindOne(JwtEncoder.Key)
+  def jwtEncoder: ActorRef[JwtEncoder.Command] = serverConfigure.jwtEncoder
 
-  val keyManager: ActorRef[KeyManager.Command] = AkkaUtils.receptionistFindOne(KeyManager.Key)
+  def keyManager: ActorRef[KeyManager.Command] = serverConfigure.keyManager
 
-  val authorizationService: ActorRef[OAuth2AuthorizationService.Command] =
-    AkkaUtils.receptionistFindOne(OAuth2AuthorizationService.Key)
+  def authorizationService: ActorRef[OAuth2AuthorizationService.Command] = serverConfigure.authorizationService
 
-  val clientCredentialsAuthenticationProvider: AuthenticationProvider =
-    createInstanceFor[AuthenticationProvider]("authentication-provider.client-credentials")
+  def clientCredentialsAuthenticationProvider: AuthenticationProvider =
+    serverConfigure.clientCredentialsAuthenticationProvider
+
+  val serverConfigure: OAuth2AuthorizationServerSupport = {
+    val sc = createInstanceFor[OAuth2AuthorizationServerSupport]("authorization-configure")
+    sc.init()
+    sc
+  }
 
   private def createInstanceFor[T: ClassTag](path: String) = {
     val fqcn = config.getString(path)

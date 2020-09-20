@@ -7,13 +7,11 @@ import com.fasterxml.jackson.databind.`type`.ReferenceType
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer
 import com.fasterxml.jackson.databind.ser.Serializers
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import com.fasterxml.jackson.databind.{
-  BeanDescription,
-  JavaType,
-  JsonSerializer,
-  SerializationConfig,
-  SerializerProvider
-}
+import com.fasterxml.jackson.databind.BeanDescription
+import com.fasterxml.jackson.databind.JavaType
+import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.SerializationConfig
+import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.module.scala.JacksonModule
 import com.helloscala.akka.oauth.OAuth2AccessToken
 

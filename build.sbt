@@ -10,30 +10,45 @@ ThisBuild / version := "0.1"
 
 lazy val parent =
   Project("akka-security", file("."))
-    .aggregate(`akka-security-core`, `akka-oauth-core`, `akka-authorization-server`)
+    .aggregate(
+      `example-akka-authorization-server`,
+      `akka-authorization-server`,
+      `akka-oauth-core`,
+      `akka-security-josa`,
+      `akka-security-core`)
     .settings(skip in publish := true)
+
+lazy val `example-akka-authorization-server` =
+  project
+    .in(file("sample/example-authorization-server"))
+    .dependsOn(`akka-authorization-server`)
+    .settings(basicSettings: _*)
+    .settings(libraryDependencies ++= Seq(_logback))
 
 lazy val `akka-authorization-server` =
   project
     .in(file("akka-authorization-server"))
-    .dependsOn(`akka-oauth-core`)
+    .dependsOn(`akka-oauth-core`, `akka-security-josa`)
     .settings(basicSettings: _*)
-    .settings(publishing: _*)
     .settings(libraryDependencies ++= Seq(_akkaDiscovery, _akkaHttpTestkit % Test) ++ _akkaClusters)
+
+lazy val `akka-security-josa` = project
+  .in(file("akka-security-josa"))
+  .dependsOn(`akka-security-core`)
+  .settings(basicSettings)
+  .settings(libraryDependencies ++= Seq(_joseJwt))
 
 lazy val `akka-oauth-core` = project
   .in(file("akka-oauth-core"))
   .dependsOn(`akka-security-core`)
   .settings(basicSettings: _*)
-  .settings(publishing: _*)
   .settings(libraryDependencies ++= Seq(_akkaHttpTestkit % Test) ++ _akkaHttps)
 
 lazy val `akka-security-core` =
   project
     .in(file("akka-security-core"))
     .settings(basicSettings: _*)
-    .settings(publishing: _*)
-    .settings(libraryDependencies ++= Seq(_joseJwt, _akkaSerializationJackson, _scalaCollectionCompat) ++ _akkas)
+    .settings(libraryDependencies ++= Seq(_akkaSerializationJackson, _scalaCollectionCompat) ++ _akkas)
 
 def basicSettings =
   Seq(
@@ -61,7 +76,7 @@ def basicSettings =
     fork in run := true,
     fork in Test := true,
     parallelExecution in Test := false,
-    libraryDependencies ++= Seq(_scalatest % Test))
+    libraryDependencies ++= Seq(_scalatest % Test)) ++ publishing
 
 def publishing =
   Seq(

@@ -2,7 +2,8 @@ package com.helloscala.akka.oauth
 
 import java.time.Instant
 
-import akka.http.scaladsl.model.{ ContentTypes, HttpEntity }
+import akka.http.scaladsl.model.ContentTypes
+import akka.http.scaladsl.model.HttpEntity
 import com.helloscala.akka.oauth.core.TraitOAuth2Token
 import com.helloscala.akka.oauth.util.OAuth2JsonUtils
 

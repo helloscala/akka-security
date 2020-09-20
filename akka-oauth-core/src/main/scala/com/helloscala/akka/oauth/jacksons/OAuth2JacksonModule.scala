@@ -1,10 +1,14 @@
 package com.helloscala.akka.oauth.jacksons
 
-import com.fasterxml.jackson.core.{ JsonGenerator, JsonParseException, JsonParser }
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.JsonParseException
+import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import com.fasterxml.jackson.databind.{ DeserializationContext, SerializerProvider }
-import com.helloscala.akka.oauth.{ GrantType, TokenType }
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.helloscala.akka.oauth.GrantType
+import com.helloscala.akka.oauth.TokenType
 
 /**
  * @author Yang Jing <a href="mailto:yang.xunjing@qq.com">yangbajing</a>

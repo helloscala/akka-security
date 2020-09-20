@@ -1,8 +1,12 @@
 package com.helloscala.akka.security.oauth.server.authentication.client
 
-import akka.actor.typed.receptionist.{ Receptionist, ServiceKey }
-import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
-import akka.actor.typed.{ ActorRef, Behavior }
+import java.util.UUID
+
+import akka.actor.typed.ActorRef
+import akka.actor.typed.Behavior
+import akka.actor.typed.receptionist.ServiceKey
+import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.typed.scaladsl.Behaviors
 
 import scala.collection.mutable
 
@@ -17,16 +21,13 @@ object RegisteredClientRepository {
   case class FindById(id: String, replyTo: ActorRef[Option[RegisteredClient]]) extends Command
   case class FindByClientId(clientId: String, replyTo: ActorRef[Option[RegisteredClient]]) extends Command
 
-  def initMemoryRegisteredClientRepository(): Behavior[Command] = Behaviors.setup { context =>
-    context.system.receptionist ! Receptionist.Register(Key, context.self)
-    new InMemoryRegisteredClientRepository(context).receive()
-  }
 }
 
 import com.helloscala.akka.security.oauth.server.authentication.client.RegisteredClientRepository._
 class InMemoryRegisteredClientRepository(context: ActorContext[Command]) {
-  private val clientIdRegisteredClientMap = mutable.Map[String, RegisteredClient]()
-  private val idRegisteredClientMap = mutable.Map[String, RegisteredClient]()
+  private val c = RegisteredClient(UUID.randomUUID().toString, "helloscala", "akka-security", Set(), Set(), "rsa-key")
+  private val clientIdRegisteredClientMap = mutable.Map[String, RegisteredClient](c.clientId -> c)
+  private val idRegisteredClientMap = mutable.Map[String, RegisteredClient](c.id -> c)
 
   def receive(): Behavior[Command] =
     Behaviors.receiveMessagePartial {
@@ -38,4 +39,7 @@ class InMemoryRegisteredClientRepository(context: ActorContext[Command]) {
         replyTo ! clientIdRegisteredClientMap.get(clientId)
         Behaviors.same
     }
+}
+object InMemoryRegisteredClientRepository {
+  def apply(): Behavior[Command] = Behaviors.setup(context => new InMemoryRegisteredClientRepository(context).receive())
 }

@@ -1,8 +1,10 @@
 package com.helloscala.akka.security.oauth.server.crypto.keys
 
-import akka.actor.typed.receptionist.{ Receptionist, ServiceKey }
-import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
-import akka.actor.typed.{ ActorRef, Behavior }
+import akka.actor.typed.ActorRef
+import akka.actor.typed.Behavior
+import akka.actor.typed.receptionist.ServiceKey
+import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.typed.scaladsl.Behaviors
 
 /**
  * @author Yang Jing <a href="mailto:yang.xunjing@qq.com">yangbajing</a>
@@ -15,11 +17,6 @@ object KeyManager {
   case class FindById(id: String, replyTo: ActorRef[Option[ManagedKey]]) extends Command
   case class FindByAlgorithm(algorithm: String, replyTo: ActorRef[Set[ManagedKey]]) extends Command
   case class FindAll(replyTo: ActorRef[Set[ManagedKey]]) extends Command
-
-  def initMemoryKeyManager(): Unit = Behaviors.setup[Command] { context =>
-    context.system.receptionist ! Receptionist.Register(Key, context.self)
-    new InMemoryKeyManager(context).receive(KeyUtils.generateKeys())
-  }
 }
 
 import com.helloscala.akka.security.oauth.server.crypto.keys.KeyManager._
@@ -36,5 +33,10 @@ class InMemoryKeyManager(context: ActorContext[Command]) {
     case FindAll(replyTo) =>
       replyTo ! keys.valuesIterator.toSet
       receive(keys)
+  }
+}
+object InMemoryKeyManager {
+  def apply(): Behavior[Command] = Behaviors.setup { context =>
+    new InMemoryKeyManager(context).receive(KeyUtils.generateKeys())
   }
 }

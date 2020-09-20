@@ -1,6 +1,7 @@
 package com.helloscala.akka.security.oauth.jose
 
-import com.nimbusds.jose.{ Header, JWSHeader }
+import com.nimbusds.jose.Header
+import com.nimbusds.jose.JWSHeader
 
 /**
  * @author Yang Jing <a href="mailto:yang.xunjing@qq.com">yangbajing</a>

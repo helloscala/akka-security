@@ -1,11 +1,12 @@
 package com.helloscala.akka.security.oauth.server.jwt
 import java.security.PrivateKey
-import java.time.Instant
 
 import akka.actor.typed.ActorRef
+import akka.actor.typed.Behavior
 import akka.actor.typed.receptionist.ServiceKey
 import akka.actor.typed.scaladsl.AskPattern._
-import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
+import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.typed.scaladsl.Behaviors
 import akka.pattern.StatusReply
 import akka.util.Timeout
 import com.helloscala.akka.oauth.jwt.JWT
@@ -13,10 +14,13 @@ import com.helloscala.akka.security.exception.AkkaSecurityException
 import com.helloscala.akka.security.oauth.jose.JoseHeader
 import com.helloscala.akka.security.oauth.server.OAuth2Extension
 import com.helloscala.akka.security.oauth.server.authentication.OAuth2ClientCredentialsAuthentication
-import com.helloscala.akka.security.oauth.server.crypto.keys.{ KeyManager, ManagedKey }
-import com.nimbusds.jose.crypto.{ MACSigner, RSASSASigner }
-import com.nimbusds.jose.{ JWSHeader, JWSSigner }
-import com.nimbusds.jwt.{ JWTClaimsSet, SignedJWT }
+import com.helloscala.akka.security.oauth.server.crypto.keys.KeyManager
+import com.helloscala.akka.security.oauth.server.crypto.keys.ManagedKey
+import com.nimbusds.jose.JWSSigner
+import com.nimbusds.jose.crypto.MACSigner
+import com.nimbusds.jose.crypto.RSASSASigner
+import com.nimbusds.jwt.JWTClaimsSet
+import com.nimbusds.jwt.SignedJWT
 import javax.crypto.SecretKey
 
 import scala.concurrent.duration._
@@ -51,7 +55,7 @@ class DefaultJwtEncoder(context: ActorContext[Command]) {
   implicit private val timeout: Timeout = 5.seconds
   private val oauth2Extension = OAuth2Extension(context.system)
 
-  def receive: Behaviors.Receive[Command] = Behaviors.receiveMessagePartial {
+  def receive(): Behaviors.Receive[Command] = Behaviors.receiveMessagePartial {
     case Encode(authentication, joseHeader, jwtClaim, replyTo) =>
       val keyId = authentication.registeredClient.keyId
       oauth2Extension.keyManager.ask[Option[ManagedKey]](ref => KeyManager.FindById(keyId, ref)).foreach {
@@ -85,4 +89,7 @@ class DefaultJwtEncoder(context: ActorContext[Command]) {
       }
       Behaviors.same
   }
+}
+object DefaultJwtEncoder {
+  def apply(): Behavior[Command] = Behaviors.setup(context => new DefaultJwtEncoder(context).receive())
 }

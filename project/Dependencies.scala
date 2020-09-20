@@ -65,4 +65,6 @@ object Dependencies {
 
   val _joseJwt = "com.nimbusds" % "nimbus-jose-jwt" % versionJoseJwt
   val _alpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % versionAlpnAgent
+
+  val _logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 }

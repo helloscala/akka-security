@@ -1,6 +1,8 @@
 package com.helloscala.akka.security.oauth.server.crypto.keys
 
-import java.security.{ Key, PrivateKey, PublicKey }
+import java.security.Key
+import java.security.PrivateKey
+import java.security.PublicKey
 import java.time.Instant
 
 import javax.crypto.SecretKey

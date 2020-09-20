@@ -1,6 +1,8 @@
 package com.helloscala.akka.oauth.util
 
-import akka.http.scaladsl.model.{ ContentTypes, FormData, HttpRequest }
+import akka.http.scaladsl.model.ContentTypes
+import akka.http.scaladsl.model.FormData
+import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Materializer
 
