@@ -11,35 +11,60 @@ ThisBuild / version := "0.1"
 lazy val parent =
   Project("akka-security", file("."))
     .aggregate(
-      `example-akka-authorization-server`,
+      `example-oauth2-server-in-memory`,
+      `example-spring-oauth2-security-resource`,
+      `example-spring-oauth2-client`,
       `akka-authorization-server`,
-      `akka-oauth-core`,
-      `akka-security-josa`,
+      `akka-security-oauth-client`,
+      `akka-security-oauth-core`,
+      `akka-security-oauth-jose`,
       `akka-security-core`)
     .settings(skip in publish := true)
 
-lazy val `example-akka-authorization-server` =
+lazy val `example-oauth2-server-in-memory` =
   project
-    .in(file("sample/example-authorization-server"))
+    .in(file("samples/oauth2-server-in-memory"))
     .dependsOn(`akka-authorization-server`)
     .settings(basicSettings: _*)
-    .settings(libraryDependencies ++= Seq(_logback))
+    .settings(skip in publish := true, fork in run := false, libraryDependencies ++= Seq(_logback))
+
+lazy val `example-spring-oauth2-security-resource` = project
+  .in(file("samples/spring-oauth2-security-resource"))
+  .settings(basicSettings: _*)
+  .settings(
+    skip in publish := true,
+    fork in run := false,
+    libraryDependencies ++= Seq(_springOAuth2ResourceServer, _logback) ++ _springSecurities)
+
+lazy val `example-spring-oauth2-client` = project
+  .in(file("samples/spring-oauth2-client"))
+  .settings(basicSettings: _*)
+  .settings(
+    skip in publish := true,
+    fork in run := false,
+    libraryDependencies ++= Seq(_springThymeleaf, _springOAuth2Client, _logback) ++ _springSecurities)
 
 lazy val `akka-authorization-server` =
   project
     .in(file("akka-authorization-server"))
-    .dependsOn(`akka-oauth-core`, `akka-security-josa`)
+    .dependsOn(`akka-security-oauth-core`, `akka-security-oauth-jose`)
     .settings(basicSettings: _*)
     .settings(libraryDependencies ++= Seq(_akkaDiscovery, _akkaHttpTestkit % Test) ++ _akkaClusters)
 
-lazy val `akka-security-josa` = project
-  .in(file("akka-security-josa"))
-  .dependsOn(`akka-security-core`)
+lazy val `akka-security-oauth-client` = project
+  .in(file("akka-security-oauth-client"))
+  .dependsOn(`akka-security-oauth-core`, `akka-security-core`)
+  .settings(basicSettings)
+  .settings(libraryDependencies ++= Seq())
+
+lazy val `akka-security-oauth-jose` = project
+  .in(file("akka-security-oauth-jose"))
+  .dependsOn(`akka-security-oauth-core`)
   .settings(basicSettings)
   .settings(libraryDependencies ++= Seq(_joseJwt))
 
-lazy val `akka-oauth-core` = project
-  .in(file("akka-oauth-core"))
+lazy val `akka-security-oauth-core` = project
+  .in(file("akka-security-oauth-core"))
   .dependsOn(`akka-security-core`)
   .settings(basicSettings: _*)
   .settings(libraryDependencies ++= Seq(_akkaHttpTestkit % Test) ++ _akkaHttps)

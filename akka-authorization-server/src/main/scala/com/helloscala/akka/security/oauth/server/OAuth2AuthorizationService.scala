@@ -5,7 +5,7 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.receptionist.ServiceKey
 import akka.actor.typed.scaladsl.ActorContext
 import akka.actor.typed.scaladsl.Behaviors
-import com.helloscala.akka.oauth.TokenType
+import com.helloscala.akka.security.oauth.TokenType
 import com.helloscala.akka.security.oauth.server.authentication.OAuth2AccessTokenAuthenticationToken
 
 /**
