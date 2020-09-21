@@ -1,5 +1,7 @@
 # Akka Security
 
+[![Gitter](https://badges.gitter.im/helloscala/akka-security.svg)](https://gitter.im/helloscala/akka-security?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 Out-of-the-box OAuth 2 client-server library based on Akka.
 
 ## Building from Source
