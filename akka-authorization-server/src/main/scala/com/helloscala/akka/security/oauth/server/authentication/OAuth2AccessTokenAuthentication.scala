@@ -1,10 +1,10 @@
 package com.helloscala.akka.security.oauth.server.authentication
 
 import akka.http.scaladsl.model.headers.HttpCredentials
-import com.helloscala.akka.oauth.GrantType
-import com.helloscala.akka.oauth.OAuth2AccessToken
 import com.helloscala.akka.security.authentication.Authentication
 import com.helloscala.akka.security.authentication.AuthenticationToken
+import com.helloscala.akka.security.oauth.GrantType
+import com.helloscala.akka.security.oauth.OAuth2AccessToken
 import com.helloscala.akka.security.oauth.server.authentication.client.RegisteredClient
 
 /**

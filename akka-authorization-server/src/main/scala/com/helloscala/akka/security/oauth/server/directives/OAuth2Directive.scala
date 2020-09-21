@@ -4,9 +4,9 @@ import akka.http.scaladsl.model.FormData
 import akka.http.scaladsl.model.headers.Authorization
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.server.Directives._
-import com.helloscala.akka.oauth.GrantType
-import com.helloscala.akka.oauth.constant.OAuth2ParameterNames
 import com.helloscala.akka.security.exception.AkkaSecurityException
+import com.helloscala.akka.security.oauth.GrantType
+import com.helloscala.akka.security.oauth.constant.OAuth2ParameterNames
 import com.helloscala.akka.security.oauth.server.authentication.OAuth2AccessTokenAuthentication
 
 /**

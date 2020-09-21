@@ -25,7 +25,8 @@ object RegisteredClientRepository {
 
 import com.helloscala.akka.security.oauth.server.authentication.client.RegisteredClientRepository._
 class InMemoryRegisteredClientRepository(context: ActorContext[Command]) {
-  private val c = RegisteredClient(UUID.randomUUID().toString, "helloscala", "akka-security", Set(), Set(), "rsa-key")
+  private val c =
+    RegisteredClient(UUID.randomUUID().toString, "messaging-client", "secret", Set(), Set("message.read"), "rsa-key")
   private val clientIdRegisteredClientMap = mutable.Map[String, RegisteredClient](c.clientId -> c)
   private val idRegisteredClientMap = mutable.Map[String, RegisteredClient](c.id -> c)
 

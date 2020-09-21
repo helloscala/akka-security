@@ -7,14 +7,14 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.http.scaladsl.model.headers.BasicHttpCredentials
 import akka.util.Timeout
-import com.helloscala.akka.oauth.constant.OAuth2ParameterNames
-import com.helloscala.akka.oauth.jwt.JWT
-import com.helloscala.akka.oauth.OAuth2AccessToken
-import com.helloscala.akka.oauth.TokenType
 import com.helloscala.akka.security.authentication.Authentication
 import com.helloscala.akka.security.authentication.AuthenticationProvider
 import com.helloscala.akka.security.exception.AkkaSecurityException
+import com.helloscala.akka.security.oauth.OAuth2AccessToken
+import com.helloscala.akka.security.oauth.TokenType
+import com.helloscala.akka.security.oauth.constant.OAuth2ParameterNames
 import com.helloscala.akka.security.oauth.jose.JoseHeader
+import com.helloscala.akka.security.oauth.jwt.Jwt
 import com.helloscala.akka.security.oauth.server.authentication.client.RegisteredClient
 import com.helloscala.akka.security.oauth.server.authentication.client.RegisteredClientRepository
 import com.helloscala.akka.security.oauth.server.jwt.JwtEncoder
@@ -63,7 +63,7 @@ class OAuth2ClientCredentialsAuthenticationProviderImpl(system: ActorSystem[_])
         Future.failed(new AkkaSecurityException("Need basic http credentials."))
     }
 
-    def generateJwt(registeredClient: RegisteredClient): Future[JWT] = {
+    def generateJwt(registeredClient: RegisteredClient): Future[Jwt] = {
       val message = OAuth2ClientCredentialsAuthentication(
         registeredClient,
         oauthAuthentication.grantType,
@@ -81,7 +81,7 @@ class OAuth2ClientCredentialsAuthenticationProviderImpl(system: ActorSystem[_])
         .claim(OAuth2ParameterNames.SCOPE, registeredClient.scopes.mkString(" "))
         .build()
 
-      oauth2Extension.jwtEncoder.askWithStatus[JWT](replyTo => JwtEncoder.Encode(message, jwtHeader, jwtClaim, replyTo))
+      oauth2Extension.jwtEncoder.askWithStatus[Jwt](replyTo => JwtEncoder.Encode(message, jwtHeader, jwtClaim, replyTo))
     }
 
     val accessTokenFuture = for {

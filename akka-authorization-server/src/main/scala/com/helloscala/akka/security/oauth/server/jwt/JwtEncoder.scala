@@ -9,9 +9,9 @@ import akka.actor.typed.scaladsl.ActorContext
 import akka.actor.typed.scaladsl.Behaviors
 import akka.pattern.StatusReply
 import akka.util.Timeout
-import com.helloscala.akka.oauth.jwt.JWT
 import com.helloscala.akka.security.exception.AkkaSecurityException
 import com.helloscala.akka.security.oauth.jose.JoseHeader
+import com.helloscala.akka.security.oauth.jwt.Jwt
 import com.helloscala.akka.security.oauth.server.OAuth2Extension
 import com.helloscala.akka.security.oauth.server.authentication.OAuth2ClientCredentialsAuthentication
 import com.helloscala.akka.security.oauth.server.crypto.keys.KeyManager
@@ -37,14 +37,14 @@ object JwtEncoder {
       authentication: OAuth2ClientCredentialsAuthentication,
       joseHeader: JoseHeader,
       jwtClaim: JWTClaimsSet,
-      replyTo: ActorRef[StatusReply[JWT]])
+      replyTo: ActorRef[StatusReply[Jwt]])
       extends Command
 
   case class EncodeWithManagedKey(
       managedKey: ManagedKey,
       joseHeader: JoseHeader,
       jwtClaim: JWTClaimsSet,
-      replyTo: ActorRef[StatusReply[JWT]])
+      replyTo: ActorRef[StatusReply[Jwt]])
       extends Command
 }
 
@@ -81,7 +81,7 @@ class DefaultJwtEncoder(context: ActorContext[Command]) {
         val signedJWT = new SignedJWT(jwsHeader, jwtClaim)
         signedJWT.sign(jwsSigner)
         val tokenValue = signedJWT.serialize()
-        val jwt = JWT(tokenValue, jwtClaim.getIssueTime.toInstant, jwtClaim.getExpirationTime.toInstant)
+        val jwt = Jwt(tokenValue, jwtClaim.getIssueTime.toInstant, jwtClaim.getExpirationTime.toInstant)
         replyTo ! StatusReply.success(jwt)
       } catch {
         case e: Throwable =>
