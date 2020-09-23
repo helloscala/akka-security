@@ -42,7 +42,7 @@ lazy val `example-spring-oauth2-client` = project
   .settings(
     skip in publish := true,
     fork in run := false,
-    libraryDependencies ++= Seq(_springThymeleaf, _springOAuth2Client, _logback) ++ _springSecurities)
+    libraryDependencies ++= Seq(_springOAuth2Client, _logback) ++ _springSecurities ++ _springThymeleafs ++ _webjars)
 
 lazy val `akka-authorization-server` =
   project

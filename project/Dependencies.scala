@@ -65,15 +65,23 @@ object Dependencies {
   val _nacosAkka = "me.yangbajing.nacos4s" %% "nacos-akka" % versionNacosScala
 
   val _joseJwt = "com.nimbusds" % "nimbus-jose-jwt" % versionJoseJwt
+  val _oauth2OidcSdk = "com.nimbusds" % "oauth2-oidc-sdk" % versionJoseJwt
   val _alpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % versionAlpnAgent
 
   val _logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
   val _springSecurities = Seq(
     "org.springframework.boot" % "spring-boot-starter-security" % versionSpringBoot,
-    "org.springframework.boot" % "spring-boot-starter-webflux" % versionSpringBoot
-  )
+    "org.springframework.boot" % "spring-boot-starter-webflux" % versionSpringBoot)
   val _springOAuth2Client = "org.springframework.boot" % "spring-boot-starter-oauth2-client" % versionSpringBoot
-  val _springOAuth2ResourceServer = "org.springframework.boot" % "spring-boot-starter-oauth2-resource-server" % versionSpringBoot
-  val _springThymeleaf = "org.springframework.boot" % "spring-boot-starter-thymeleaf" % versionSpringBoot
+  val _springOAuth2ResourceServer =
+    "org.springframework.boot" % "spring-boot-starter-oauth2-resource-server" % versionSpringBoot
+  val _springThymeleafs = Seq(
+    "org.thymeleaf.extras" % "thymeleaf-extras-springsecurity5" % "3.0.4.RELEASE",
+    "org.springframework.boot" % "spring-boot-starter-thymeleaf" % versionSpringBoot)
+
+  val _webjars = Seq(
+    "org.webjars" % "webjars-locator-core" % "0.46",
+    "org.webjars" % "bootstrap" % "3.4.1",
+    "org.webjars" % "jquery" % "3.4.1")
 }

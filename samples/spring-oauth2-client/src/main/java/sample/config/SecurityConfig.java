@@ -29,28 +29,6 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @Configuration
 public class SecurityConfig {
 
-    // @formatter:off
-//    @Override
-//    public void configure(WebSecurity web) {
-//        web
-//                .ignoring()
-//                .antMatchers("/webjars/**");
-//    }
-    // @formatter:on
-
-    // @formatter:off
-//    @Override
-//    protected void configure(HttpSecurity http) throws Exception {
-//        http
-//                .authorizeRequests()
-//                .anyRequest().permitAll()
-//                .and()
-//                .logout()
-//                .disable()
-//                .oauth2Client();
-//    }
-    // @formatter:on
-
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http

@@ -13,14 +13,14 @@ import scala.io.StdIn
  * @author Yang Jing <a href="mailto:yang.xunjing@qq.com">yangbajing</a>
  * @date 2020-09-20 23:22:55
  */
-object ServerApplication {
-  private val logger = LoggerFactory.getLogger(ServerApplication.getClass)
+object OAuth2ServerApplication {
+  private val logger = LoggerFactory.getLogger(OAuth2ServerApplication.getClass)
 
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem(SpawnProtocol(), "oauth-server")
     import system.executionContext
     new DefaultOAuth2AuthorizationServer(system).init()
-    val bindingFuture = Http().newServerAt("localhost", 9999).bind(new OAuth2Route(system).route)
+    val bindingFuture = Http().newServerAt("localhost", 9000).bind(new OAuth2Route(system).route)
 
     logger.info(s"Server online at http://localhost:9999/\nPress RETURN to stop...")
     StdIn.readLine() // let it run until user presses return
