@@ -19,6 +19,9 @@ case class ManagedKey(
     publicKey: Option[PublicKey],
     activatedOn: Instant,
     deactivatedOn: Option[Instant]) {
+
+  // TODO add the client_id field ?
+
   def getAlgorithm: String = key.getAlgorithm
   def getKey[T <: Key: ClassTag]: T = key.asInstanceOf[T]
   def isActive: Boolean = deactivatedOn.isEmpty

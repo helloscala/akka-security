@@ -6,6 +6,7 @@ import akka.actor.typed.Extension
 import akka.actor.typed.ExtensionId
 import akka.util.Timeout
 import com.helloscala.akka.security.authentication.AuthenticationProvider
+import com.helloscala.akka.security.oauth.server.authentication.OAuth2Authorize
 import com.helloscala.akka.security.oauth.server.authentication.client.RegisteredClientRepository
 import com.helloscala.akka.security.oauth.server.crypto.keys.KeyManager
 import com.helloscala.akka.security.oauth.server.jwt.JwtEncoder
@@ -31,11 +32,13 @@ class OAuth2Extension()(implicit val system: ActorSystem[_]) extends Extension {
 
   def authorizationService: ActorRef[OAuth2AuthorizationService.Command] = serverConfigure.authorizationService
 
+  def oauth2AuthorizeProvider: ActorRef[OAuth2Authorize.Command] = serverConfigure.oauth2AuthorizeProvider
+
   def clientCredentialsAuthenticationProvider: AuthenticationProvider =
     serverConfigure.clientCredentialsAuthenticationProvider
 
-  val serverConfigure: OAuth2AuthorizationServerSupport = {
-    val sc = createInstanceFor[OAuth2AuthorizationServerSupport]("authorization-configure")
+  lazy val serverConfigure: OAuth2AuthorizationServerConfigure = {
+    val sc = createInstanceFor[OAuth2AuthorizationServerConfigure]("authorization-server-configure")
     sc.init()
     sc
   }
@@ -46,7 +49,6 @@ class OAuth2Extension()(implicit val system: ActorSystem[_]) extends Extension {
       .createInstanceFor[T](fqcn, List(classOf[ActorSystem[_]] -> system))
       .orElse(system.dynamicAccess.createInstanceFor[T](fqcn, Nil))
       .getOrElse(throw new ExceptionInInitializerError(s"Initial $fqcn class error."))
-
   }
 }
 

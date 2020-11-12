@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializationConfig
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.module.scala.JacksonModule
-import com.helloscala.akka.security.oauth.OAuth2AccessToken
+import com.helloscala.akka.security.oauth.core.OAuth2AccessToken
 
 /**
  * @author Yang Jing <a href="mailto:yang.xunjing@qq.com">yangbajing</a>

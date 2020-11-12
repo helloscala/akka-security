@@ -1,15 +1,9 @@
 package com.helloscala.akka.security.util
 
+import akka.actor.typed._
 import akka.actor.typed.receptionist.Receptionist
 import akka.actor.typed.receptionist.ServiceKey
 import akka.actor.typed.scaladsl.AskPattern._
-import akka.actor.typed.ActorRef
-import akka.actor.typed.ActorSystem
-import akka.actor.typed.Behavior
-import akka.actor.typed.Props
-import akka.actor.typed.RecipientRef
-import akka.actor.typed.Scheduler
-import akka.actor.typed.SpawnProtocol
 import akka.util.Timeout
 import com.helloscala.akka.security.exception.AkkaSecurityException
 
@@ -36,16 +30,28 @@ object AkkaUtils {
   }
 
   def receptionistFindSet[T](
-      serviceKey: ServiceKey[T])(implicit system: ActorSystem[_], timeout: Timeout): Set[ActorRef[T]] = {
+      serviceKey: ServiceKey[T])(implicit system: ActorSystem[_], timeout: Timeout): Future[Set[ActorRef[T]]] = {
     implicit val ec = system.executionContext
-    val f = system.receptionist.ask[Receptionist.Listing](Receptionist.Find(serviceKey)).map { listing =>
+    system.receptionist.ask[Receptionist.Listing](Receptionist.Find(serviceKey)).map { listing =>
       if (listing.isForKey(serviceKey)) listing.serviceInstances(serviceKey) else Set[ActorRef[T]]()
     }
-    Await.result(f, timeout.duration)
+  }
+  def receptionistFindOne[T](
+      serviceKey: ServiceKey[T])(implicit system: ActorSystem[_], timeout: Timeout): Future[ActorRef[T]] = {
+    implicit val ec = system.executionContext
+    receptionistFindSet(serviceKey).flatMap {
+      case set if set.nonEmpty => Future.successful(set.head)
+      case _                   => Future.failed(new AkkaSecurityException(s"$serviceKey not found!"))
+    }
   }
 
-  def receptionistFindOne[T](
+  def receptionistFindSetSync[T](
+      serviceKey: ServiceKey[T])(implicit system: ActorSystem[_], timeout: Timeout): Set[ActorRef[T]] = {
+    Await.result(receptionistFindSet(serviceKey), timeout.duration)
+  }
+
+  def receptionistFindOneSync[T](
       serviceKey: ServiceKey[T])(implicit system: ActorSystem[_], timeout: Timeout): ActorRef[T] = {
-    receptionistFindSet(serviceKey).headOption.getOrElse(throw new AkkaSecurityException(s"$serviceKey not found!"))
+    receptionistFindSetSync(serviceKey).headOption.getOrElse(throw new AkkaSecurityException(s"$serviceKey not found!"))
   }
 }

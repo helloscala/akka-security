@@ -2,15 +2,11 @@ package com.helloscala.akka.security.oauth.server
 
 import akka.actor.typed.ActorRef
 import akka.actor.typed.ActorSystem
-import akka.actor.typed.SpawnProtocol
-import akka.actor.typed.receptionist.Receptionist
 import akka.util.Timeout
 import com.helloscala.akka.security.authentication.AuthenticationProvider
-import com.helloscala.akka.security.oauth.server.authentication.client.InMemoryRegisteredClientRepository
+import com.helloscala.akka.security.oauth.server.authentication.OAuth2Authorize
 import com.helloscala.akka.security.oauth.server.authentication.client.RegisteredClientRepository
-import com.helloscala.akka.security.oauth.server.crypto.keys.InMemoryKeyManager
 import com.helloscala.akka.security.oauth.server.crypto.keys.KeyManager
-import com.helloscala.akka.security.oauth.server.jwt.DefaultJwtEncoder
 import com.helloscala.akka.security.oauth.server.jwt.JwtEncoder
 import com.helloscala.akka.security.util.AkkaUtils
 
@@ -22,8 +18,8 @@ import scala.reflect.ClassTag
  * @author Yang Jing <a href="mailto:yang.xunjing@qq.com">yangbajing</a>
  * @date 2020-09-20 22:20:15
  */
-class OAuth2AuthorizationServerSupport(val system: ActorSystem[_]) {
-  implicit val typedSystem: ActorSystem[_] = system
+class OAuth2AuthorizationServerConfigure(system: ActorSystem[_]) {
+  implicit private val typedSystem = system
   implicit val timeout: Timeout = 5.seconds
 
   private var _registeredClientRepository: ActorRef[RegisteredClientRepository.Command] = _
@@ -40,6 +36,8 @@ class OAuth2AuthorizationServerSupport(val system: ActorSystem[_]) {
 
   def authorizationService: ActorRef[OAuth2AuthorizationService.Command] = _authorizationService
 
+  def oauth2AuthorizeProvider: ActorRef[OAuth2Authorize.Command] = ???
+
   def clientCredentialsAuthenticationProvider: AuthenticationProvider = _clientCredentialsAuthenticationProvider
 
   def init(): Future[Unit] = {
@@ -52,14 +50,14 @@ class OAuth2AuthorizationServerSupport(val system: ActorSystem[_]) {
   }
 
   def getRegisteredClientRepository(): ActorRef[RegisteredClientRepository.Command] =
-    AkkaUtils.receptionistFindOne(RegisteredClientRepository.Key)
+    AkkaUtils.receptionistFindOneSync(RegisteredClientRepository.Key)
 
-  def getJwtEncoder(): ActorRef[JwtEncoder.Command] = AkkaUtils.receptionistFindOne(JwtEncoder.Key)
+  def getJwtEncoder(): ActorRef[JwtEncoder.Command] = AkkaUtils.receptionistFindOneSync(JwtEncoder.Key)
 
-  def getKeyManager(): ActorRef[KeyManager.Command] = AkkaUtils.receptionistFindOne(KeyManager.Key)
+  def getKeyManager(): ActorRef[KeyManager.Command] = AkkaUtils.receptionistFindOneSync(KeyManager.Key)
 
   def getAuthorizationService(): ActorRef[OAuth2AuthorizationService.Command] =
-    AkkaUtils.receptionistFindOne(OAuth2AuthorizationService.Key)
+    AkkaUtils.receptionistFindOneSync(OAuth2AuthorizationService.Key)
 
   def getClientCredentialsAuthenticationProvider(): AuthenticationProvider =
     createInstanceFor[AuthenticationProvider]("akka.security.server.authentication-provider.client-credentials")
@@ -72,22 +70,4 @@ class OAuth2AuthorizationServerSupport(val system: ActorSystem[_]) {
       .getOrElse(throw new ExceptionInInitializerError(s"Initial $fqcn class error."))
   }
 
-}
-
-class DefaultOAuth2AuthorizationServer(override val system: ActorSystem[SpawnProtocol.Command])
-    extends OAuth2AuthorizationServerSupport(system) {
-  implicit override val typedSystem: ActorSystem[SpawnProtocol.Command] = system
-  private implicit val scheduler = typedSystem.scheduler
-
-  system.receptionist ! Receptionist.Register(
-    RegisteredClientRepository.Key,
-    AkkaUtils.spawnBlock(InMemoryRegisteredClientRepository(), "RegisteredClientRepository"))
-
-  system.receptionist ! Receptionist.Register(JwtEncoder.Key, AkkaUtils.spawnBlock(DefaultJwtEncoder(), "JwtEncoder"))
-
-  system.receptionist ! Receptionist.Register(KeyManager.Key, AkkaUtils.spawnBlock(InMemoryKeyManager(), "KeyManager"))
-
-  system.receptionist ! Receptionist.Register(
-    OAuth2AuthorizationService.Key,
-    AkkaUtils.spawnBlock(InMemoryAuthorizationService(), "OAuth2AuthorizationService"))
 }

@@ -7,8 +7,9 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.SerializerProvider
-import com.helloscala.akka.security.oauth.GrantType
-import com.helloscala.akka.security.oauth.TokenType
+import com.helloscala.akka.security.oauth.core.GrantType
+import com.helloscala.akka.security.oauth.core.ResponseType
+import com.helloscala.akka.security.oauth.core.TokenType
 
 /**
  * @author Yang Jing <a href="mailto:yang.xunjing@qq.com">yangbajing</a>
@@ -38,4 +39,14 @@ class GrantTypeSerializer(vc: Class[GrantType]) extends StdSerializer[GrantType]
 class GrantTypeDeserializer(vc: Class[GrantType]) extends StdDeserializer[GrantType](vc) {
   override def deserialize(p: JsonParser, ctxt: DeserializationContext): GrantType =
     GrantType.valueOf(p.getText).getOrElse(throw new JsonParseException(p, "Invalid authorization grant type."))
+}
+
+class ResponseTypeSerializer(vc: Class[ResponseType]) extends StdSerializer[ResponseType](vc) {
+  override def serialize(value: ResponseType, gen: JsonGenerator, provider: SerializerProvider): Unit =
+    gen.writeString(value.VALUE)
+}
+
+class ResponseTypeDeserializer(vc: Class[ResponseType]) extends StdDeserializer[ResponseType](vc) {
+  override def deserialize(p: JsonParser, ctxt: DeserializationContext): ResponseType =
+    ResponseType.valueOf(p.getText).getOrElse(throw new JsonParseException(p, "Invalid authorization response type."))
 }

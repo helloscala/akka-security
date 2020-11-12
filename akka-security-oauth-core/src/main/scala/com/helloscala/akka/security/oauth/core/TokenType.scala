@@ -1,4 +1,4 @@
-package com.helloscala.akka.security.oauth
+package com.helloscala.akka.security.oauth.core
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -17,4 +17,8 @@ sealed abstract class TokenType(val VALUE: String) {
 
 object TokenType {
   case object BEARER extends TokenType("Bearer")
+
+  val values: Set[TokenType] = Set(BEARER)
+
+  def valueOf(text: String): Option[TokenType] = values.find(_.VALUE == text)
 }

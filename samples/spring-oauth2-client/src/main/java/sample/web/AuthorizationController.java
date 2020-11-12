@@ -22,9 +22,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
-import static org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction.clientRegistrationId;
-import static org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction.oauth2AuthorizedClient;
+import static org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction.clientRegistrationId;
+import static org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction.oauth2AuthorizedClient;
 
 /**
  * @author Joe Grandja
@@ -32,44 +33,43 @@ import static org.springframework.security.oauth2.client.web.reactive.function.c
  */
 @Controller
 public class AuthorizationController {
-	private final WebClient webClient;
-	private final String messagesBaseUri;
+    private final WebClient webClient;
+    private final String messagesBaseUri;
 
-	public AuthorizationController(WebClient webClient,
-			@Value("${messages.base-uri}") String messagesBaseUri) {
-		this.webClient = webClient;
-		this.messagesBaseUri = messagesBaseUri;
-	}
+    public AuthorizationController(WebClient webClient,
+                                   @Value("${messages.base-uri}") String messagesBaseUri) {
+        this.webClient = webClient;
+        this.messagesBaseUri = messagesBaseUri;
+    }
 
-	@GetMapping(value = "/authorize", params = "grant_type=authorization_code")
-	public String authorizationCodeGrant(Model model,
-			@RegisteredOAuth2AuthorizedClient("messaging-client-authorization-code")
-					OAuth2AuthorizedClient authorizedClient) {
+    @GetMapping(value = "/authorize", params = "grant_type=authorization_code")
+    public Mono<String> authorizationCodeGrant(Model model,
+                                               @RegisteredOAuth2AuthorizedClient("messaging-client-authorization-code")
+                                                       OAuth2AuthorizedClient authorizedClient) {
 
-		String[] messages = this.webClient
-				.get()
-				.uri(this.messagesBaseUri)
-				.attributes(oauth2AuthorizedClient(authorizedClient))
-				.retrieve()
-				.bodyToMono(String[].class)
-				.block();
-		model.addAttribute("messages", messages);
+        return this.webClient
+                .get()
+                .uri(this.messagesBaseUri)
+                .attributes(oauth2AuthorizedClient(authorizedClient))
+                .retrieve()
+                .bodyToMono(String[].class)
+                .map(messages -> {
+                    model.addAttribute("messages", messages);
+                    return "index";
+                });
+    }
 
-		return "index";
-	}
-
-	@GetMapping(value = "/authorize", params = "grant_type=client_credentials")
-	public String clientCredentialsGrant(Model model) {
-
-		String[] messages = this.webClient
-				.get()
-				.uri(this.messagesBaseUri)
-				.attributes(clientRegistrationId("messaging-client-client-credentials"))
-				.retrieve()
-				.bodyToMono(String[].class)
-				.block();
-		model.addAttribute("messages", messages);
-
-		return "index";
-	}
+    @GetMapping(value = "/authorize", params = "grant_type=client_credentials")
+    public Mono<String> clientCredentialsGrant(Model model) {
+        return this.webClient
+                .get()
+                .uri(this.messagesBaseUri)
+                .attributes(clientRegistrationId("messaging-client-client-credentials"))
+                .retrieve()
+                .bodyToMono(String[].class)
+                .map(messages -> {
+                    model.addAttribute("messages", messages);
+                    return "index";
+                });
+    }
 }

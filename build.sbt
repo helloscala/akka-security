@@ -11,6 +11,7 @@ ThisBuild / version := "0.1"
 lazy val parent =
   Project("akka-security", file("."))
     .aggregate(
+      `example-oauth2-server-in-slick`,
       `example-oauth2-server-in-memory`,
       `example-spring-oauth2-security-resource`,
       `example-spring-oauth2-client`,
@@ -20,6 +21,16 @@ lazy val parent =
       `akka-security-oauth-jose`,
       `akka-security-core`)
     .settings(skip in publish := true)
+
+lazy val `example-oauth2-server-in-slick` =
+  project
+    .in(file("samples/oauth2-server-in-slick"))
+    .dependsOn(`akka-authorization-server`)
+    .settings(basicSettings: _*)
+    .settings(
+      skip in publish := true,
+      fork in run := false,
+      libraryDependencies ++= Seq(_slickHikaricp, _postgresql, _logback))
 
 lazy val `example-oauth2-server-in-memory` =
   project
@@ -42,7 +53,7 @@ lazy val `example-spring-oauth2-client` = project
   .settings(
     skip in publish := true,
     fork in run := false,
-    libraryDependencies ++= Seq(_springThymeleaf, _springOAuth2Client, _logback) ++ _springSecurities)
+    libraryDependencies ++= Seq(_springOAuth2Client, _logback) ++ _springSecurities ++ _springThymeleafs ++ _webjars)
 
 lazy val `akka-authorization-server` =
   project
@@ -73,7 +84,7 @@ lazy val `akka-security-core` =
   project
     .in(file("akka-security-core"))
     .settings(basicSettings: _*)
-    .settings(libraryDependencies ++= Seq(_akkaSerializationJackson, _scalaCollectionCompat) ++ _akkas)
+    .settings(libraryDependencies ++= Seq(_akkaSerializationJackson, _scalaCollectionCompat, _bouncycastle) ++ _akkas)
 
 def basicSettings =
   Seq(
