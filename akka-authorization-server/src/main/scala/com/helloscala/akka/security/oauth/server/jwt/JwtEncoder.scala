@@ -1,12 +1,15 @@
 package com.helloscala.akka.security.oauth.server.jwt
 import java.security.PrivateKey
+import java.security.interfaces.ECPrivateKey
 
 import akka.actor.typed.ActorRef
 import akka.actor.typed.Behavior
+import akka.actor.typed.receptionist.Receptionist
 import akka.actor.typed.receptionist.ServiceKey
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.actor.typed.scaladsl.ActorContext
 import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.scaladsl.StashBuffer
 import akka.pattern.StatusReply
 import akka.util.Timeout
 import com.helloscala.akka.security.exception.AkkaSecurityException
@@ -17,6 +20,7 @@ import com.helloscala.akka.security.oauth.server.authentication.OAuth2ClientCred
 import com.helloscala.akka.security.oauth.server.crypto.keys.KeyManager
 import com.helloscala.akka.security.oauth.server.crypto.keys.ManagedKey
 import com.nimbusds.jose.JWSSigner
+import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jose.crypto.MACSigner
 import com.nimbusds.jose.crypto.RSASSASigner
 import com.nimbusds.jwt.JWTClaimsSet
@@ -31,7 +35,7 @@ import scala.concurrent.duration._
  */
 object JwtEncoder {
   trait Command
-  val Key = ServiceKey[Command]("JwtEncoder")
+  val Key: ServiceKey[Command] = ServiceKey[Command]("JwtEncoder")
 
   case class Encode(
       authentication: OAuth2ClientCredentialsAuthentication,
@@ -46,6 +50,8 @@ object JwtEncoder {
       jwtClaim: JWTClaimsSet,
       replyTo: ActorRef[StatusReply[Jwt]])
       extends Command
+
+  case class KeyManagerWrapper(listing: Receptionist.Listing) extends Command
 }
 
 import com.helloscala.akka.security.oauth.server.jwt.JwtEncoder._
@@ -53,12 +59,27 @@ class DefaultJwtEncoder(context: ActorContext[Command]) {
   implicit private val system = context.system
   implicit private val ec = system.executionContext
   implicit private val timeout: Timeout = 5.seconds
-  private val oauth2Extension = OAuth2Extension(context.system)
 
-  def receive(): Behaviors.Receive[Command] = Behaviors.receiveMessagePartial {
+//  context.system.receptionist
+//    .tell(Receptionist.Find(KeyManager.Key, context.messageAdapter[Receptionist.Listing](KeyManagerWrapper)))
+//
+//  def inactive(stash: StashBuffer[Command]): Behavior[Command] = Behaviors.receiveMessage {
+//    case KeyManagerWrapper(KeyManager.Key.Listing(listing)) =>
+//      if (listing.isEmpty) {
+//        Behaviors.same
+//      } else {
+//        stash.unstashAll(active(listing.head))
+//      }
+//
+//    case message =>
+//      stash.stash(message)
+//      Behaviors.same
+//  }
+
+  def active(keyManager: ActorRef[KeyManager.Command]): Behavior[Command] = Behaviors.receiveMessagePartial {
     case Encode(authentication, joseHeader, jwtClaim, replyTo) =>
       val keyId = authentication.registeredClient.keyId
-      oauth2Extension.keyManager.ask[Option[ManagedKey]](ref => KeyManager.FindById(keyId, ref)).foreach {
+      keyManager.ask[Option[ManagedKey]](ref => KeyManager.FindById(keyId, ref)).foreach {
         case Some(managedKey) => context.self ! EncodeWithManagedKey(managedKey, joseHeader, jwtClaim, replyTo)
         case None             => replyTo ! StatusReply.error(s"ManagedKey not found, key id is $keyId")
       }
@@ -67,10 +88,10 @@ class DefaultJwtEncoder(context: ActorContext[Command]) {
     case EncodeWithManagedKey(managedKey, joseHeader, claim, replyTo) =>
       try {
         val jwsSigner: JWSSigner = if (managedKey.isAsymmetric) {
-          val privateKey = managedKey.getKey[PrivateKey]
           managedKey.getAlgorithm match {
-            case "RSA" => new RSASSASigner(privateKey)
-            case _     => throw new AkkaSecurityException(s"Unsupported key type '${managedKey.getAlgorithm}'")
+            case "RSA" => new RSASSASigner(managedKey.getKey[PrivateKey])
+            case "EC"  => new ECDSASigner(managedKey.getKey[ECPrivateKey])
+            case _     => throw new AkkaSecurityException(s"Unsupported key type '${managedKey.getAlgorithm}'.")
           }
         } else {
           val secretKey = managedKey.getKey[SecretKey]
@@ -91,5 +112,7 @@ class DefaultJwtEncoder(context: ActorContext[Command]) {
   }
 }
 object DefaultJwtEncoder {
-  def apply(): Behavior[Command] = Behaviors.setup(context => new DefaultJwtEncoder(context).receive())
+  def apply(): Behavior[Command] =
+    Behaviors.withStash(100)(stash =>
+      Behaviors.setup(context => new DefaultJwtEncoder(context).active(OAuth2Extension(context.system).keyManager)))
 }

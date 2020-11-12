@@ -2,8 +2,8 @@ package com.helloscala.akka.security.oauth.util
 
 import java.time.Instant
 
-import com.helloscala.akka.security.oauth.OAuth2AccessToken
-import com.helloscala.akka.security.oauth.TokenType
+import com.helloscala.akka.security.oauth.core.OAuth2AccessToken
+import com.helloscala.akka.security.oauth.core.TokenType
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 

@@ -10,9 +10,9 @@ import akka.util.Timeout
 import com.helloscala.akka.security.authentication.Authentication
 import com.helloscala.akka.security.authentication.AuthenticationProvider
 import com.helloscala.akka.security.exception.AkkaSecurityException
-import com.helloscala.akka.security.oauth.OAuth2AccessToken
-import com.helloscala.akka.security.oauth.TokenType
 import com.helloscala.akka.security.oauth.constant.OAuth2ParameterNames
+import com.helloscala.akka.security.oauth.core.OAuth2AccessToken
+import com.helloscala.akka.security.oauth.core.TokenType
 import com.helloscala.akka.security.oauth.jose.JoseHeader
 import com.helloscala.akka.security.oauth.jwt.Jwt
 import com.helloscala.akka.security.oauth.server.authentication.client.RegisteredClient
@@ -35,12 +35,12 @@ trait OAuth2ClientCredentialsAuthenticationProvider extends AuthenticationProvid
 
 class OAuth2ClientCredentialsAuthenticationProviderImpl(system: ActorSystem[_])
     extends OAuth2ClientCredentialsAuthenticationProvider {
-  implicit private val ts = system
-  implicit private val ec = system.executionContext
+  private val oauth2Extension = OAuth2Extension(system)
+  implicit private val ts = oauth2Extension.system
+  implicit private val ec = oauth2Extension.system.executionContext
   implicit private val timeout: Timeout = 5.seconds
 
   override def authenticate(authentication: Authentication): Future[OAuth2AccessTokenAuthenticationToken] = {
-    val oauth2Extension = OAuth2Extension(system)
     val oauthAuthentication = authentication.asInstanceOf[OAuth2AccessTokenAuthentication]
 
     val registeredClientFuture: Future[RegisteredClient] = oauthAuthentication.credentials match {
@@ -72,7 +72,9 @@ class OAuth2ClientCredentialsAuthenticationProviderImpl(system: ActorSystem[_])
 
       val issuedAt = Instant.now()
       val expiresAt = issuedAt.plus(7, ChronoUnit.DAYS).plus(5, ChronoUnit.MINUTES)
-      val jwtHeader = JoseHeader(new JWSHeader.Builder(JWSAlgorithm.RS256).build())
+      val algorithm =
+        oauthAuthentication.parameters.get("algorithm").map(JWSAlgorithm.parse).getOrElse(JWSAlgorithm.ES256)
+      val jwtHeader = JoseHeader(new JWSHeader.Builder(algorithm).build())
       val jwtClaim = new JWTClaimsSet.Builder()
         .issuer("https://akka-security.helloscala.com")
         .subject(registeredClient.clientId)

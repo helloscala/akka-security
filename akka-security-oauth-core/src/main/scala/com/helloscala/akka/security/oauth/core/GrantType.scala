@@ -1,4 +1,4 @@
-package com.helloscala.akka.security.oauth
+package com.helloscala.akka.security.oauth.core
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -21,11 +21,7 @@ object GrantType {
   case object REFRESH_TOKEN extends GrantType("refresh_token")
   case object PASSWORD extends GrantType("password")
 
-  def valueOf(text: String): Option[GrantType] = Option(text match {
-    case GrantType.AUTHORIZATION_CODE.VALUE => GrantType.AUTHORIZATION_CODE
-    case GrantType.CLIENT_CREDENTIALS.VALUE => GrantType.CLIENT_CREDENTIALS
-    case GrantType.REFRESH_TOKEN.VALUE      => GrantType.REFRESH_TOKEN
-    case GrantType.PASSWORD.VALUE           => GrantType.PASSWORD
-    case _                                  => null
-  })
+  val values: Set[GrantType] = Set(AUTHORIZATION_CODE, CLIENT_CREDENTIALS, REFRESH_TOKEN, PASSWORD)
+
+  def valueOf(text: String): Option[GrantType] = values.find(_.VALUE == text)
 }

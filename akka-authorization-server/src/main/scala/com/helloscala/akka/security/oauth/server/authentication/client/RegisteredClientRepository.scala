@@ -25,10 +25,23 @@ object RegisteredClientRepository {
 
 import com.helloscala.akka.security.oauth.server.authentication.client.RegisteredClientRepository._
 class InMemoryRegisteredClientRepository(context: ActorContext[Command]) {
-  private val c =
-    RegisteredClient(UUID.randomUUID().toString, "messaging-client", "secret", Set(), Set("message.read"), "rsa-key")
-  private val clientIdRegisteredClientMap = mutable.Map[String, RegisteredClient](c.clientId -> c)
-  private val idRegisteredClientMap = mutable.Map[String, RegisteredClient](c.id -> c)
+  private val clients = List(
+    RegisteredClient(
+      UUID.randomUUID().toString,
+      "messaging-client",
+      "secret",
+      Set(),
+      Set("message.read", "message.write"),
+      "rsa-key"),
+    RegisteredClient(
+      UUID.randomUUID().toString,
+      "ec-client",
+      "secret",
+      Set(),
+      Set("message.read", "message.write"),
+      "ec-key"))
+  private val clientIdRegisteredClientMap = mutable.Map[String, RegisteredClient]() ++ clients.map(v => v.clientId -> v)
+  private val idRegisteredClientMap = mutable.Map[String, RegisteredClient]() ++ clients.map(v => v.id -> v)
 
   def receive(): Behavior[Command] =
     Behaviors.receiveMessagePartial {

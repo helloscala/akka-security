@@ -1,14 +1,17 @@
 package com.helloscala.akka.security.oauth.server.crypto.keys
 
+import java.io.StringWriter
 import java.math.BigInteger
+import java.nio.file.Files
+import java.nio.file.Path
+import java.security.KeyPair
+import java.security.KeyPairGenerator
 import java.security.interfaces.ECPublicKey
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.ECFieldFp
 import java.security.spec.ECParameterSpec
 import java.security.spec.ECPoint
 import java.security.spec.EllipticCurve
-import java.security.KeyPair
-import java.security.KeyPairGenerator
 import java.time.Instant
 import java.util.UUID
 
@@ -16,12 +19,28 @@ import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk._
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import org.bouncycastle.util.io.pem.PemObject
+import org.bouncycastle.util.io.pem.PemReader
+import org.bouncycastle.util.io.pem.PemWriter
 
 /**
  * @author Yang Jing <a href="mailto:yang.xunjing@qq.com">yangbajing</a>
  * @date 2020-09-20 14:06:18
  */
 object KeyUtils {
+  def writePem(path: Path, typ: String, encoded: Array[Byte]): Unit = {
+    val writer = new PemWriter(Files.newBufferedWriter(path))
+    writer.writeObject(new PemObject(typ, encoded))
+    writer.flush()
+    writer.close()
+  }
+
+  def readPemEncoded(path: Path): Array[Byte] = {
+    val reader = new PemReader(Files.newBufferedReader(path))
+    val pem = reader.readPemObject()
+    pem.getContent
+  }
+
   def convert(managedKey: ManagedKey): Option[JWK] = {
     managedKey.publicKey.flatMap {
       case publicKey: RSAPublicKey =>
@@ -92,6 +111,8 @@ object KeyUtils {
       ManagedKey("rsa-key", rsaKeyPair.getPrivate, Some(rsaKeyPair.getPublic), Instant.now(), None)
     val hmacKey: SecretKey = generateSecretKey()
     val secretManagedKey: ManagedKey = ManagedKey(UUID.randomUUID().toString, hmacKey, None, Instant.now(), None)
-    Map(rsaManagedKey.id -> rsaManagedKey, secretManagedKey.id -> secretManagedKey)
+    val ecKeyPair = generateEcKey()
+    val ecManagedKey = ManagedKey("ec-key", ecKeyPair.getPrivate, Some(ecKeyPair.getPublic), Instant.now(), None)
+    List(rsaManagedKey, secretManagedKey, ecManagedKey).map(mk => mk.id -> mk).toMap
   }
 }

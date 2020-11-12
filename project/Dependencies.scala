@@ -69,6 +69,8 @@ object Dependencies {
   val _alpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % versionAlpnAgent
 
   val _logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
+  val _postgresql = "org.postgresql" % "postgresql" % "42.2.18"
+  val _slickHikaricp = "com.typesafe.slick" %% "slick-hikaricp" % "3.3.3"
 
   val _springSecurities = Seq(
     "org.springframework.boot" % "spring-boot-starter-security" % versionSpringBoot,
@@ -84,4 +86,6 @@ object Dependencies {
     "org.webjars" % "webjars-locator-core" % "0.46",
     "org.webjars" % "bootstrap" % "3.4.1",
     "org.webjars" % "jquery" % "3.4.1")
+
+  val _bouncycastle = "org.bouncycastle" % "bcprov-jdk15on" % "1.67"
 }

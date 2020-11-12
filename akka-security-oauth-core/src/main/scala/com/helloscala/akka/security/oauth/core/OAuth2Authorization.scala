@@ -1,4 +1,4 @@
-package com.helloscala.akka.security.oauth
+package com.helloscala.akka.security.oauth.core
 
 import akka.http.scaladsl.model.AttributeKey
 
