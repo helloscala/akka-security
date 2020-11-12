@@ -15,7 +15,6 @@ import akka.util.Timeout
 import com.helloscala.akka.security.exception.AkkaSecurityException
 import com.helloscala.akka.security.oauth.jose.JoseHeader
 import com.helloscala.akka.security.oauth.jwt.Jwt
-import com.helloscala.akka.security.oauth.server.OAuth2Extension
 import com.helloscala.akka.security.oauth.server.authentication.OAuth2ClientCredentialsAuthentication
 import com.helloscala.akka.security.oauth.server.crypto.keys.KeyManager
 import com.helloscala.akka.security.oauth.server.crypto.keys.ManagedKey
@@ -60,26 +59,24 @@ class DefaultJwtEncoder(context: ActorContext[Command]) {
   implicit private val ec = system.executionContext
   implicit private val timeout: Timeout = 5.seconds
 
-//  context.system.receptionist
-//    .tell(Receptionist.Find(KeyManager.Key, context.messageAdapter[Receptionist.Listing](KeyManagerWrapper)))
-//
-//  def inactive(stash: StashBuffer[Command]): Behavior[Command] = Behaviors.receiveMessage {
-//    case KeyManagerWrapper(KeyManager.Key.Listing(listing)) =>
-//      if (listing.isEmpty) {
-//        Behaviors.same
-//      } else {
-//        stash.unstashAll(active(listing.head))
-//      }
-//
-//    case message =>
-//      stash.stash(message)
-//      Behaviors.same
-//  }
+  context.system.receptionist
+    .tell(Receptionist.Find(KeyManager.Key, context.messageAdapter[Receptionist.Listing](KeyManagerWrapper)))
+
+  def inactive(stash: StashBuffer[Command]): Behavior[Command] = Behaviors.receiveMessage {
+    case KeyManagerWrapper(KeyManager.Key.Listing(listing)) =>
+      if (listing.isEmpty) Behaviors.same
+      else stash.unstashAll(active(listing.head))
+
+    case message =>
+      stash.stash(message)
+      Behaviors.same
+  }
 
   def active(keyManager: ActorRef[KeyManager.Command]): Behavior[Command] = Behaviors.receiveMessagePartial {
     case Encode(authentication, joseHeader, jwtClaim, replyTo) =>
       val keyId = authentication.registeredClient.keyId
-      keyManager.ask[Option[ManagedKey]](ref => KeyManager.FindById(keyId, ref)).foreach {
+      val f = keyManager.ask[Option[ManagedKey]](ref => KeyManager.FindById(keyId, ref))
+      f.foreach {
         case Some(managedKey) => context.self ! EncodeWithManagedKey(managedKey, joseHeader, jwtClaim, replyTo)
         case None             => replyTo ! StatusReply.error(s"ManagedKey not found, key id is $keyId")
       }
@@ -109,10 +106,13 @@ class DefaultJwtEncoder(context: ActorContext[Command]) {
           replyTo ! StatusReply.error(e)
       }
       Behaviors.same
+
+    case KeyManagerWrapper(KeyManager.Key.Listing(listing)) =>
+      if (listing.isEmpty) Behaviors.same
+      else active(listing.head)
   }
 }
 object DefaultJwtEncoder {
   def apply(): Behavior[Command] =
-    Behaviors.withStash(100)(stash =>
-      Behaviors.setup(context => new DefaultJwtEncoder(context).active(OAuth2Extension(context.system).keyManager)))
+    Behaviors.withStash(100)(stash => Behaviors.setup(context => new DefaultJwtEncoder(context).inactive(stash)))
 }

@@ -16,7 +16,7 @@ import akka.http.scaladsl.server.Route
 import akka.util.Timeout
 import com.helloscala.akka.security.core.UsernamePassword
 import com.helloscala.akka.security.exception.AkkaSecurityException
-import com.helloscala.akka.security.oauth.core.endpoint.OAuth2AuthorizationRequest
+import com.helloscala.akka.security.oauth.core.endpoint.OAuth2AuthorizationLogin
 import com.helloscala.akka.security.oauth.server.authentication.OAuth2AccessTokenAuthenticationToken
 import com.helloscala.akka.security.oauth.server.authentication.client.RegisteredClient
 import com.helloscala.akka.security.oauth.server.crypto.keys.KeyManager
@@ -54,22 +54,22 @@ class OAuth2Route(system: ActorSystem[_]) extends OAuth2Directive {
   def login: Route = post {
     parameter("authorizeId") { authorizeId =>
       extractUsernameAndPassword { up =>
-        // TODO Determine whether the username name password match
+        // TODO Determine whether the username and password match
 
-        // TODO get OAuth2AuthorizationRequest from actor with authorizeId
-        val authorizationRequest: OAuth2AuthorizationRequest = null
+        // TODO get OAuth2AuthorizationLogin from actor with authorizeId
+        val authorizationLogin: OAuth2AuthorizationLogin = null
 
         // TODO get RegisteredClient from actor with authorizationRequest#clientId
         val registeredClient: RegisteredClient = null
 
         val redirectUri =
-          authorizationRequest.redirectUri.getOrElse(throw new AkkaSecurityException("The redirect_uri is required."))
+          authorizationLogin.redirectUri.getOrElse(throw new AkkaSecurityException("The redirect_uri is required."))
         if (!registeredClient.redirectUris.contains(redirectUri)) {
           throw new AkkaSecurityException("Invalid redirect_uri.")
         }
 
         val uri = Uri(redirectUri).withQuery(
-          Uri.Query("code" -> "code", "state" -> authorizationRequest.state.getOrElse(""), "scope" -> "scope"))
+          Uri.Query("code" -> "code", "state" -> authorizationLogin.state.getOrElse(""), "scope" -> "scope"))
 
         if (up.username == "user1" && up.password == "password")
           redirect(uri, StatusCodes.Found)

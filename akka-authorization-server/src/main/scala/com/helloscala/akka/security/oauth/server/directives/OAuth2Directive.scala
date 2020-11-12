@@ -10,7 +10,7 @@ import com.helloscala.akka.security.oauth.constant.OAuth2ParameterNames
 import com.helloscala.akka.security.oauth.core.GrantType
 import com.helloscala.akka.security.oauth.core.OAuth2Error
 import com.helloscala.akka.security.oauth.core.ResponseType
-import com.helloscala.akka.security.oauth.core.endpoint.OAuth2AuthorizationRequest
+import com.helloscala.akka.security.oauth.core.endpoint.OAuth2AuthorizationLogin
 import com.helloscala.akka.security.oauth.server.authentication.OAuth2AccessTokenAuthentication
 
 /**
@@ -19,7 +19,7 @@ import com.helloscala.akka.security.oauth.server.authentication.OAuth2AccessToke
  */
 trait OAuth2Directive {
 
-  def extractOAuth2Authorize: Directive1[OAuth2AuthorizationRequest] =
+  def extractOAuth2Authorize: Directive1[OAuth2AuthorizationLogin] =
     extractRequest.flatMap { request =>
       val query = request.uri.query()
       val redirectUri = query.get(OAuth2ParameterNames.REDIRECT_URI)
@@ -33,7 +33,7 @@ trait OAuth2Directive {
         val grantType: GrantType =
           query.get(OAuth2ParameterNames.GRANT_TYPE).flatMap(GrantType.valueOf).getOrElse(GrantType.AUTHORIZATION_CODE)
         val scopes = query.get(OAuth2ParameterNames.SCOPE).map(_.split(' ').toSet).getOrElse(Set())
-        val req = OAuth2AuthorizationRequest(
+        val req = OAuth2AuthorizationLogin(
           request.uri.path.toString(),
           grantType,
           responseTypeEither.right.get,

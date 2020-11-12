@@ -50,14 +50,14 @@ class OAuth2AuthorizationServerConfigure(system: ActorSystem[_]) {
   }
 
   def getRegisteredClientRepository(): ActorRef[RegisteredClientRepository.Command] =
-    AkkaUtils.receptionistFindOne(RegisteredClientRepository.Key)
+    AkkaUtils.receptionistFindOneSync(RegisteredClientRepository.Key)
 
-  def getJwtEncoder(): ActorRef[JwtEncoder.Command] = AkkaUtils.receptionistFindOne(JwtEncoder.Key)
+  def getJwtEncoder(): ActorRef[JwtEncoder.Command] = AkkaUtils.receptionistFindOneSync(JwtEncoder.Key)
 
-  def getKeyManager(): ActorRef[KeyManager.Command] = AkkaUtils.receptionistFindOne(KeyManager.Key)
+  def getKeyManager(): ActorRef[KeyManager.Command] = AkkaUtils.receptionistFindOneSync(KeyManager.Key)
 
   def getAuthorizationService(): ActorRef[OAuth2AuthorizationService.Command] =
-    AkkaUtils.receptionistFindOne(OAuth2AuthorizationService.Key)
+    AkkaUtils.receptionistFindOneSync(OAuth2AuthorizationService.Key)
 
   def getClientCredentialsAuthenticationProvider(): AuthenticationProvider =
     createInstanceFor[AuthenticationProvider]("akka.security.server.authentication-provider.client-credentials")
